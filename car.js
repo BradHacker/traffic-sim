@@ -1,15 +1,23 @@
 class Car {
-  constructor(dist, lane, speed) {
-    this.dist = dist;
+  constructor(lane, speed) {
+    this.dist = 0;
     this.lane = lane;
     this.speed = speed;
     this.width = 10;
-    this.height = 20;
+    this.length = 20;
+    this.heading = 0;
   }
 
-  show(x, y) {
+  update() {
+    this.dist += this.speed;
+  }
+
+  show() {
+    push();
     fill(255);
     rectMode(CENTER);
-    rect(x, y, this.width, this.height);
+    rotate(this.heading);
+    rect(0, 0, this.length, this.width);
+    pop();
   }
 }

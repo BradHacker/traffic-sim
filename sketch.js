@@ -1,7 +1,7 @@
-const CARS_PER_LANE = 3;
-const SPEED_LIMIT = 1;
+const CARS_PER_LANE = 10,
+  SPEED_LIMIT = 2;
 
-let track;
+let track = null;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -11,4 +11,5 @@ function setup() {
 function draw() {
   background(0);
   track.show();
+  track.update();
 }
