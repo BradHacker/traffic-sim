@@ -1,4 +1,4 @@
-const CARS_PER_LANE = 10,
+const CARS_PER_LANE = 5,
   SPEED_LIMIT = 2;
 
 let track = null;

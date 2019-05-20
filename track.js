@@ -21,7 +21,11 @@ class Track {
     for (let lane = 0; lane < this.cars.length; lane++) {
       for (let i = 0; i < this.carsPerLane; i++) {
         this.cars[lane].push(
-          new Car(lane, random(SPEED_LIMIT - SPEED_LIMIT / 2) + SPEED_LIMIT)
+          new Car(
+            random(this.totalDist),
+            lane,
+            random(SPEED_LIMIT - SPEED_LIMIT / 2) + SPEED_LIMIT
+          )
         );
       }
     }
@@ -31,9 +35,43 @@ class Track {
   update() {
     for (let lane = 0; lane < this.cars.length; lane++) {
       for (let i = 0; i < this.cars[lane].length; i++) {
+        let around = this.getCarsAround(this.cars[lane][i]);
+        // this.cars[lane][i].think(
+        //   this.speedLimit,
+        //   around.carAhead,
+        //   around.carBehind
+        // );
         this.cars[lane][i].update();
       }
     }
+  }
+
+  getCarsAround(car) {
+    let l = car.lane;
+    let carAheadDist = this.totalDist - car.dist;
+    let carAhead = null;
+    let carBehindDist = this.dist;
+    let carBehind = null;
+    for (let i = 0; i < this.cars[l].length; i++) {
+      if (
+        this.cars[l][i].dist >= car.dist &&
+        this.cars[l][i].dist <= carAheadDist
+      ) {
+        carAheadDist = this.cars[l][i].dist;
+        carAhead = this.cars[l][i];
+      }
+      // if (
+      //   this.cars[l][i].dist < car.dist &&
+      //   this.cars[l][i].dist >= carBehindDist
+      // ) {
+      //   carBehindDist = this.cars[l][i].dist;
+      //   carBehind = this.cars[l][i];
+      // }
+    }
+    return {
+      carAhead,
+      carBehind
+    };
   }
 
   drawCarInLane(car, lane) {
