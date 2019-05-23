@@ -1,5 +1,6 @@
-const CARS_PER_LANE = 5,
-  SPEED_LIMIT = 2;
+const CARS_PER_LANE = 15,
+  SPEED_LIMIT = 2,
+  SEEING_DIST = 50;
 
 let track = null;
 

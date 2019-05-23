@@ -19,14 +19,17 @@ class Track {
     console.log(this.checkpoints);
 
     for (let lane = 0; lane < this.cars.length; lane++) {
+      let possibleStartDists = [];
+      for (let d = 0; d < this.totalDist - 25; d += 25) {
+        possibleStartDists.push(d);
+      }
+      console.log(possibleStartDists);
       for (let i = 0; i < this.carsPerLane; i++) {
+        let randomStart = floor(random(possibleStartDists.length));
         this.cars[lane].push(
-          new Car(
-            random(this.totalDist),
-            lane,
-            random(SPEED_LIMIT - SPEED_LIMIT / 2) + SPEED_LIMIT
-          )
+          new Car(possibleStartDists[randomStart], lane, SPEED_LIMIT / 2)
         );
+        possibleStartDists.splice(randomStart, 1);
       }
     }
     console.log(this.cars);
@@ -36,11 +39,11 @@ class Track {
     for (let lane = 0; lane < this.cars.length; lane++) {
       for (let i = 0; i < this.cars[lane].length; i++) {
         let around = this.getCarsAround(this.cars[lane][i]);
-        // this.cars[lane][i].think(
-        //   this.speedLimit,
-        //   around.carAhead,
-        //   around.carBehind
-        // );
+        this.cars[lane][i].think(
+          this.speedLimit,
+          around.carAhead,
+          around.carBehind
+        );
         this.cars[lane][i].update();
       }
     }
@@ -48,26 +51,27 @@ class Track {
 
   getCarsAround(car) {
     let l = car.lane;
-    let carAheadDist = this.totalDist - car.dist;
+    // console.log(`Lane: ${l}`);
     let carAhead = null;
-    let carBehindDist = this.dist;
     let carBehind = null;
-    for (let i = 0; i < this.cars[l].length; i++) {
-      if (
-        this.cars[l][i].dist >= car.dist &&
-        this.cars[l][i].dist <= carAheadDist
-      ) {
-        carAheadDist = this.cars[l][i].dist;
-        carAhead = this.cars[l][i];
-      }
-      // if (
-      //   this.cars[l][i].dist < car.dist &&
-      //   this.cars[l][i].dist >= carBehindDist
-      // ) {
-      //   carBehindDist = this.cars[l][i].dist;
-      //   carBehind = this.cars[l][i];
-      // }
-    }
+
+    let carDists = this.cars[l].map(c => {
+      return {
+        car: c,
+        deltaD: (c.dist % this.totalDist) - (car.dist % this.totalDist)
+      };
+    });
+    carDists = carDists.sort((a, b) => b.deltaD - a.deltaD);
+    // console.log(carDists);
+    const carIndex = carDists.findIndex(v => v.deltaD == 0);
+    carAhead =
+      carIndex > 0 ? carDists[carIndex - 1] : carDists[carDists.length - 1];
+    carBehind =
+      carIndex < carDists.length - 1 ? carDists[carIndex + 1] : carDists[0];
+
+    if (abs(carAhead.deltaD) > SEEING_DIST) carAhead = null;
+    if (abs(carBehind.deltaD) > SEEING_DIST) carBehind = null;
+
     return {
       carAhead,
       carBehind
@@ -75,21 +79,25 @@ class Track {
   }
 
   drawCarInLane(car, lane) {
+    const displayDist = car.dist % this.totalDist;
     push();
     translate(width / 2, height / 2);
-    if (car.dist >= this.checkpoints[0] && car.dist < this.checkpoints[1]) {
+    if (
+      displayDist >= this.checkpoints[0] &&
+      displayDist < this.checkpoints[1]
+    ) {
       translate(
-        car.dist,
+        displayDist,
         -this.height / 2 - this.laneThickness / 2 - this.laneThickness * lane
       );
       car.show(0, 0);
     } else if (
-      car.dist >= this.checkpoints[1] &&
-      car.dist < this.checkpoints[2]
+      displayDist >= this.checkpoints[1] &&
+      displayDist < this.checkpoints[2]
     ) {
       translate(this.width / 2 - this.height / 2, 0);
       let radius = this.height / 2;
-      let angle = (car.dist - this.checkpoints[2]) / radius + PI / 2;
+      let angle = (displayDist - this.checkpoints[2]) / radius + PI / 2;
       let laneRadius =
         radius + this.laneThickness / 2 + this.laneThickness * lane;
       let x = laneRadius * cos(angle);
@@ -98,23 +106,23 @@ class Track {
       car.heading = angle + PI / 2;
       car.show(0, 0);
     } else if (
-      car.dist >= this.checkpoints[2] &&
-      car.dist < this.checkpoints[3]
+      displayDist >= this.checkpoints[2] &&
+      displayDist < this.checkpoints[3]
     ) {
       this.heading = PI;
       let xOffest = this.width / 2 - this.height / 2;
       translate(
-        xOffest - car.dist + this.checkpoints[2],
+        xOffest - displayDist + this.checkpoints[2],
         this.height / 2 + this.laneThickness / 2 + this.laneThickness * lane
       );
       car.show(0, 0);
     } else if (
-      car.dist >= this.checkpoints[3] &&
-      car.dist < this.checkpoints[4]
+      displayDist >= this.checkpoints[3] &&
+      displayDist < this.checkpoints[4]
     ) {
       translate(-this.width / 2 + this.height / 2, 0);
       let radius = this.height / 2;
-      let angle = (car.dist - this.checkpoints[3]) / radius + PI / 2;
+      let angle = (displayDist - this.checkpoints[3]) / radius + PI / 2;
       let laneRadius =
         radius + this.laneThickness / 2 + this.laneThickness * lane;
       let x = laneRadius * cos(angle);
@@ -123,16 +131,14 @@ class Track {
       car.heading = angle + PI / 2;
       car.show(0, 0);
     } else if (
-      car.dist >= this.checkpoints[4] &&
-      car.dist < this.checkpoints[5]
+      displayDist >= this.checkpoints[4] &&
+      displayDist < this.checkpoints[5]
     ) {
       translate(
-        -this.totalDist + car.dist,
+        -this.totalDist + displayDist,
         -this.height / 2 - this.laneThickness / 2 - this.laneThickness * lane
       );
       car.show(0, 0);
-    } else {
-      car.dist = 0;
     }
     pop();
   }
