@@ -23,7 +23,7 @@ class Track {
       for (let d = 0; d < this.totalDist - 25; d += 25) {
         possibleStartDists.push(d);
       }
-      console.log(possibleStartDists);
+      //console.log(possibleStartDists);
       for (let i = 0; i < this.carsPerLane; i++) {
         let randomStart = floor(random(possibleStartDists.length));
         this.cars[lane].push(
